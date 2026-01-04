@@ -1,0 +1,2 @@
+Plataforma enterprise para forjar, gerenciar e treinar modelos de IA proprietários VR. Suporta múltiplos domínios (VR Chat, VR Code, VR Lex, VR Data, VR Agent Brain) com geração sintética de datasets, revisão humana e export para fine-tuning.
+

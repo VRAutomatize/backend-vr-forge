@@ -1,6 +1,13 @@
-# VRForge Backend
+# 🚀 VRForge Backend
 
-Plataforma enterprise para forjar, gerenciar e treinar modelos de IA proprietários VR.
+> Plataforma enterprise para forjar, gerenciar e treinar modelos de IA proprietários VR
+
+[![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109-green.svg)](https://fastapi.tiangolo.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg)](https://www.postgresql.org/)
+[![License](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
+
+**VRForge** é a plataforma oficial da **VR Automatize** para criação, gerenciamento e treinamento de modelos de IA proprietários, suportando múltiplos domínios de negócio e diferentes casos de uso.
 
 ## 🎯 Visão
 
