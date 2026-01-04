@@ -2,6 +2,10 @@
 
 from typing import Any, Dict, Optional
 
+from app.core.logging import get_logger, get_request_id
+
+logger = get_logger(__name__)
+
 
 class VRForgeException(Exception):
     """Base exception for VRForge."""
@@ -16,6 +20,19 @@ class VRForgeException(Exception):
         self.status_code = status_code
         self.details = details or {}
         super().__init__(self.message)
+        
+        # Log exception automatically
+        request_id = get_request_id()
+        log_data = {
+            "exception_type": self.__class__.__name__,
+            "message": message,
+            "status_code": status_code,
+            "details": details or {},
+        }
+        if request_id:
+            log_data["request_id"] = request_id
+        
+        logger.error("VRForge exception raised", **log_data, exc_info=True)
 
 
 class NotFoundError(VRForgeException):
