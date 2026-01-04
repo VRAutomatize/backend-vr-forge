@@ -68,9 +68,6 @@ def configure_logging(log_level: str = "INFO", app_env: str = "development") -> 
     # Add call site info in debug mode
     if is_dev:
         processors.append(
-            structlog.processors.add_logger_name
-        )
-        processors.append(
             structlog.processors.CallsiteParameterAdder(
                 parameters=[CallsiteParameter.FILENAME, CallsiteParameter.LINENO]
             )
