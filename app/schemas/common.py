@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Generic, List, Optional, TypeVar
 
-from pydantic import BaseModel, Field, field_serializer
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
 T = TypeVar("T")
 
@@ -47,6 +47,8 @@ class StatusEnum(str):
 class BaseResponse(BaseModel):
     """Base response model."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     created_at: datetime
     updated_at: Optional[datetime] = None
@@ -57,7 +59,4 @@ class BaseResponse(BaseModel):
         if dt is None:
             return None
         return dt.isoformat()
-
-    class Config:
-        from_attributes = True
 

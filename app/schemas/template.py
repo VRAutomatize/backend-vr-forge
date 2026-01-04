@@ -2,7 +2,7 @@
 
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.common import BaseResponse
 
@@ -33,6 +33,8 @@ class TemplateUpdate(BaseModel):
 class TemplateResponse(BaseResponse):
     """Schema for template response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     domain_id: str
     use_case: Optional[str]
     name: str
@@ -41,7 +43,4 @@ class TemplateResponse(BaseResponse):
     target_model_family: Optional[str]
     config: dict[str, Any]
     is_active: bool
-
-    class Config:
-        from_attributes = True
 

@@ -2,11 +2,13 @@
 
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class DocumentUpload(BaseModel):
     """Schema for document upload request."""
+
+    model_config = ConfigDict(protected_namespaces=())
 
     domain_id: str = Field(..., description="Domain ID")
     use_case: Optional[str] = Field(None, max_length=100, description="Use case")
@@ -23,6 +25,8 @@ class DocumentProcess(BaseModel):
 class DocumentResponse(BaseModel):
     """Schema for document response."""
 
+    model_config = ConfigDict(protected_namespaces=(), from_attributes=True)
+
     id: str
     domain_id: str
     use_case: Optional[str]
@@ -36,12 +40,11 @@ class DocumentResponse(BaseModel):
     created_at: str
     updated_at: str
 
-    class Config:
-        from_attributes = True
-
 
 class DocumentVersionResponse(BaseModel):
     """Schema for document version response."""
+
+    model_config = ConfigDict(from_attributes=True)
 
     id: str
     document_id: str
@@ -50,7 +53,4 @@ class DocumentVersionResponse(BaseModel):
     extracted_text: Optional[str]
     processing_metadata: dict[str, Any]
     created_at: str
-
-    class Config:
-        from_attributes = True
 

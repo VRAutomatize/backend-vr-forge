@@ -2,7 +2,7 @@
 
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.common import BaseResponse
 
@@ -23,6 +23,8 @@ class ModelCreate(BaseModel):
 class ModelResponse(BaseResponse):
     """Schema for model response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     domain_id: Optional[str]
     name: str
     base_model: str
@@ -32,7 +34,4 @@ class ModelResponse(BaseResponse):
     status: str
     config: dict[str, Any]
     capabilities: dict[str, Any]
-
-    class Config:
-        from_attributes = True
 

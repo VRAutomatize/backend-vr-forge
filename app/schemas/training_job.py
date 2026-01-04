@@ -2,13 +2,15 @@
 
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.common import BaseResponse
 
 
 class TrainingJobCreate(BaseModel):
     """Schema for creating a training job."""
+
+    model_config = ConfigDict(protected_namespaces=())
 
     model_id: str = Field(..., description="Model ID")
     dataset_id: str = Field(..., description="Dataset ID")
@@ -19,6 +21,8 @@ class TrainingJobCreate(BaseModel):
 
 class TrainingJobResponse(BaseResponse):
     """Schema for training job response."""
+
+    model_config = ConfigDict(protected_namespaces=(), from_attributes=True)
 
     model_id: str
     dataset_id: str
@@ -31,7 +35,4 @@ class TrainingJobResponse(BaseResponse):
     error_message: Optional[str]
     started_at: Optional[str]
     completed_at: Optional[str]
-
-    class Config:
-        from_attributes = True
 

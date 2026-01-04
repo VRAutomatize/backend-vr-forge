@@ -33,6 +33,8 @@ class DatasetGenerate(BaseModel):
 class DatasetResponse(BaseResponse):
     """Schema for dataset response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     domain_id: str
     template_id: Optional[str]
     use_case: Optional[str]
@@ -49,12 +51,11 @@ class DatasetResponse(BaseResponse):
     rejected_items: int
     pending_items: int
 
-    class Config:
-        from_attributes = True
-
 
 class DatasetItemResponse(BaseModel):
     """Schema for dataset item response."""
+
+    model_config = ConfigDict(protected_namespaces=(), from_attributes=True)
 
     id: str
     dataset_id: str
@@ -71,7 +72,4 @@ class DatasetItemResponse(BaseModel):
     metadata: dict[str, Any] = Field(alias="meta_data")
     created_at: str
     updated_at: str
-
-    class Config:
-        from_attributes = True
 

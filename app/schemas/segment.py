@@ -8,6 +8,8 @@ from pydantic import BaseModel, Field
 class SegmentResponse(BaseModel):
     """Schema for segment response."""
 
+    model_config = ConfigDict(protected_namespaces=(), from_attributes=True)
+
     id: str
     domain_id: str
     document_id: Optional[str]
@@ -18,9 +20,6 @@ class SegmentResponse(BaseModel):
     position: int
     metadata: dict[str, Any] = Field(alias="meta_data")
     created_at: str
-
-    class Config:
-        from_attributes = True
 
 
 class SegmentFilter(BaseModel):

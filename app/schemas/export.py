@@ -2,7 +2,7 @@
 
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ExportRequest(BaseModel):
@@ -16,6 +16,8 @@ class ExportRequest(BaseModel):
 class ExportResponse(BaseModel):
     """Schema for export response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     dataset_id: str
     export_version: int
@@ -26,7 +28,4 @@ class ExportResponse(BaseModel):
     filters_applied: dict[str, Any]
     download_url: Optional[str] = None
     created_at: str
-
-    class Config:
-        from_attributes = True
 

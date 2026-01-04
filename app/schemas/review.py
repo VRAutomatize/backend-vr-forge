@@ -2,7 +2,7 @@
 
 from typing import Any, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ReviewApprove(BaseModel):
@@ -34,6 +34,8 @@ class ReviewEdit(BaseModel):
 class ReviewResponse(BaseModel):
     """Schema for review response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     dataset_item_id: str
     action: str
@@ -43,12 +45,11 @@ class ReviewResponse(BaseModel):
     new_values: Optional[dict[str, Any]]
     created_at: str
 
-    class Config:
-        from_attributes = True
-
 
 class PendingReviewItem(BaseModel):
     """Schema for pending review item."""
+
+    model_config = ConfigDict(from_attributes=True)
 
     id: str
     dataset_id: str
@@ -61,7 +62,4 @@ class PendingReviewItem(BaseModel):
     quality_score: Optional[float]
     quality_flags: dict[str, Any]
     created_at: str  # Keep as string since it's not from a model directly
-
-    class Config:
-        from_attributes = True
 
