@@ -141,7 +141,7 @@ class SyntheticGeneratorService:
                         status="pending_review",
                         quality_score=quality_score,
                         quality_flags=quality_flags,
-                        metadata={},
+                        meta_data={},
                     )
 
                     db.add(item)

@@ -30,7 +30,7 @@ class Segment(Base, UUIDMixin, TimestampMixin):
     segment_type: Mapped[str] = mapped_column(String(50), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    metadata: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, nullable=False)
+    meta_data: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, nullable=False, name="metadata")
 
     # Relationships
     domain: Mapped["Domain"] = relationship("Domain", back_populates="segments")

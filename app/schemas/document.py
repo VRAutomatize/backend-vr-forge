@@ -32,7 +32,7 @@ class DocumentResponse(BaseModel):
     content_type: Optional[str]
     file_size: Optional[int]
     status: str
-    metadata: dict[str, Any]
+    metadata: dict[str, Any] = Field(alias="meta_data")
     created_at: str
     updated_at: str
 

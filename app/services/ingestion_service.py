@@ -73,7 +73,7 @@ class IngestionService:
             content_type=content_type,
             file_size=len(file_content),
             status="uploaded",
-            metadata=metadata or {},
+            meta_data=metadata or {},
         )
 
         db.add(document)

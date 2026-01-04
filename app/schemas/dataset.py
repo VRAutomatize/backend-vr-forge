@@ -68,7 +68,7 @@ class DatasetItemResponse(BaseModel):
     status: str
     quality_score: Optional[float]
     quality_flags: dict[str, Any]
-    metadata: dict[str, Any]
+    metadata: dict[str, Any] = Field(alias="meta_data")
     created_at: str
     updated_at: str
 

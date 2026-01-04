@@ -54,7 +54,7 @@ class SegmenterService:
                 segment_type=segment_type,
                 content=content,
                 position=position,
-                metadata=segment_config or {},
+                meta_data=segment_config or {},
             )
             segments.append(segment)
             db.add(segment)

@@ -25,7 +25,7 @@ class Document(Base, UUIDMixin, TimestampMixin):
     content_type: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     file_size: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
     status: Mapped[str] = mapped_column(String(50), default="uploaded", nullable=False)
-    metadata: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, nullable=False)
+    meta_data: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, nullable=False, name="metadata")
 
     # Relationships
     domain: Mapped["Domain"] = relationship("Domain", back_populates="documents")

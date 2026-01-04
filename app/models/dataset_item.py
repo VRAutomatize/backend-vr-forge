@@ -33,7 +33,7 @@ class DatasetItem(Base, UUIDMixin, TimestampMixin):
     )
     quality_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     quality_flags: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, nullable=False)
-    metadata: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, nullable=False)
+    meta_data: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, nullable=False, name="metadata")
 
     # Relationships
     dataset: Mapped["Dataset"] = relationship("Dataset", back_populates="items")
