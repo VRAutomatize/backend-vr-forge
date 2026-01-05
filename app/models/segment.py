@@ -1,15 +1,16 @@
 """Segment model."""
 
+from datetime import datetime
 from typing import Any, Optional
 
-from sqlalchemy import ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.base import Base, TimestampMixin, UUIDMixin
+from app.db.base import Base, UUIDMixin
 
 
-class Segment(Base, UUIDMixin, TimestampMixin):
+class Segment(Base, UUIDMixin):
     """Segment model representing text units extracted from documents."""
 
     __tablename__ = "segments"
@@ -31,6 +32,11 @@ class Segment(Base, UUIDMixin, TimestampMixin):
     content: Mapped[str] = mapped_column(Text, nullable=False)
     position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     meta_data: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, nullable=False, name="metadata")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
 
     # Relationships
     domain: Mapped["Domain"] = relationship("Domain", back_populates="segments")
