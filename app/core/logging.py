@@ -38,6 +38,79 @@ def _format_request_id(logger, method_name, event_dict):
     return event_dict
 
 
+def _format_request_log(logger, method_name, event_dict):
+    """Format HTTP request logs for better readability in development."""
+    # Only format if this is a request-related log
+    event = event_dict.get("event", "")
+    if "request" in event.lower() or "HTTP" in event.upper() or "invalid" in event.lower():
+        # Extract key information
+        method = event_dict.get("method", "")
+        path = event_dict.get("path", "")
+        url = event_dict.get("url", "")
+        route = event_dict.get("route", "")
+        status_code = event_dict.get("status_code")
+        duration_ms = event_dict.get("duration_ms")
+        client_ip = event_dict.get("client_ip", "")
+        
+        # Build formatted message with better structure
+        parts = []
+        if method and path:
+            if url:
+                # Show full URL if available
+                parts.append(f"{method} {url}")
+            else:
+                parts.append(f"{method} {path}")
+        
+        if route and route != path:
+            parts.append(f"Route: {route}")
+        
+        if client_ip and client_ip != "unknown":
+            parts.append(f"Client: {client_ip}")
+        
+        if status_code is not None:
+            if 200 <= status_code < 300:
+                status_text = "OK"
+            elif status_code >= 400:
+                status_text = "ERROR"
+            else:
+                status_text = ""
+            if status_text:
+                parts.append(f"Status: {status_code} {status_text}")
+            else:
+                parts.append(f"Status: {status_code}")
+        
+        if duration_ms is not None:
+            parts.append(f"Duration: {duration_ms}ms")
+        
+        # Add formatted info to event_dict for console renderer
+        if parts:
+            # Create a more readable format
+            formatted_msg = " → ".join(parts)
+            event_dict["_formatted"] = formatted_msg
+    
+    return event_dict
+
+
+def _format_url(logger, method_name, event_dict):
+    """Extract and format URL information."""
+    url = event_dict.get("url")
+    if url:
+        # Try to extract components
+        try:
+            from urllib.parse import urlparse
+            parsed = urlparse(url)
+            if parsed.scheme and parsed.netloc:
+                event_dict["url_scheme"] = parsed.scheme
+                event_dict["url_host"] = parsed.netloc
+                event_dict["url_path"] = parsed.path
+                if parsed.query:
+                    event_dict["url_query"] = parsed.query
+        except Exception:
+            pass  # Ignore parsing errors
+    
+    return event_dict
+
+
 def configure_logging(log_level: str = "INFO", app_env: str = "development") -> None:
     """Configure structured logging for the application.
     
@@ -82,11 +155,16 @@ def configure_logging(log_level: str = "INFO", app_env: str = "development") -> 
         processors.extend([
             _colorize_level,
             _format_request_id,
+            _format_request_log,
+            _format_url,
             structlog.dev.ConsoleRenderer(colors=True),
         ])
     else:
         # Production: JSON output
-        processors.append(structlog.processors.JSONRenderer())
+        processors.extend([
+            _format_url,
+            structlog.processors.JSONRenderer(),
+        ])
     
     # Configure structlog
     structlog.configure(

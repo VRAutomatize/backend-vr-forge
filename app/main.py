@@ -9,12 +9,16 @@ from fastapi.responses import JSONResponse
 from app.api.v1.router import api_router
 from app.core.config import get_settings
 from app.core.exceptions import VRForgeException
+from app.core.gunicorn_logging import setup_gunicorn_logging
 from app.core.logging import configure_logging, get_logger, get_request_id
 from app.core.middleware import CORSLoggingMiddleware, LoggingMiddleware
 
 settings = get_settings()
 configure_logging(settings.LOG_LEVEL, settings.APP_ENV)
 logger = get_logger(__name__)
+
+# Setup Gunicorn logging handler for invalid requests
+setup_gunicorn_logging()
 
 
 @asynccontextmanager

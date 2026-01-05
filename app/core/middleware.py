@@ -2,15 +2,17 @@
 
 import time
 import uuid
-from typing import Callable
+from typing import Callable, Optional
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
+from app.core.config import get_settings
 from app.core.logging import get_logger, set_request_id, clear_request_context
 
 logger = get_logger(__name__)
+settings = get_settings()
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
@@ -28,6 +30,26 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         self.log_request_body = log_request_body
         self.log_response_body = log_response_body
 
+    def _get_route_name(self, request: Request) -> Optional[str]:
+        """Try to identify the API route being called.
+        
+        Args:
+            request: FastAPI request object
+            
+        Returns:
+            Route name or None if not identifiable
+        """
+        # Try to get route from scope
+        route = request.scope.get("route")
+        if route:
+            if hasattr(route, "path"):
+                return route.path
+            if hasattr(route, "name"):
+                return route.name
+        
+        # Fallback: use path
+        return request.url.path
+    
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """Process request and log details.
         
@@ -51,7 +73,13 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         query_params = dict(request.query_params)
         client_ip = request.client.host if request.client else "unknown"
         
-        # Filter sensitive headers
+        # Get full URL
+        full_url = str(request.url)
+        
+        # Try to identify route
+        route_name = self._get_route_name(request)
+        
+        # Extract headers
         headers = dict(request.headers)
         sensitive_headers = {"authorization", "cookie", "x-api-key", "x-auth-token"}
         filtered_headers = {
@@ -59,16 +87,50 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             for k, v in headers.items()
         }
         
-        # Log request
-        log_data = {
-            "method": method,
-            "path": path,
-            "client_ip": client_ip,
-            "headers": filtered_headers,
-        }
+        # Extract User-Agent and Referer if configured
+        user_agent = headers.get("user-agent") if settings.LOG_USER_AGENT else None
+        referer = headers.get("referer") if settings.LOG_REFERER else None
+        origin = headers.get("origin")
         
-        if query_params:
-            log_data["query_params"] = query_params
+        # Build log data based on detail level
+        log_detail_level = settings.LOG_REQUEST_DETAILS.lower()
+        
+        if log_detail_level == "minimal":
+            log_data = {
+                "method": method,
+                "path": path,
+                "client_ip": client_ip,
+            }
+        elif log_detail_level == "verbose":
+            log_data = {
+                "method": method,
+                "path": path,
+                "url": full_url,
+                "route": route_name,
+                "client_ip": client_ip,
+                "user_agent": user_agent,
+                "referer": referer,
+                "origin": origin,
+                "headers": filtered_headers,
+            }
+            if query_params:
+                log_data["query_params"] = query_params
+        else:  # standard
+            log_data = {
+                "method": method,
+                "path": path,
+                "url": full_url,
+                "route": route_name,
+                "client_ip": client_ip,
+            }
+            if user_agent:
+                log_data["user_agent"] = user_agent
+            if referer:
+                log_data["referer"] = referer
+            if origin:
+                log_data["origin"] = origin
+            if query_params:
+                log_data["query_params"] = query_params
         
         # Log request body if enabled (and in DEBUG mode)
         if self.log_request_body:
@@ -110,20 +172,40 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 log_level = "info"
             
             # Log response
-            response_log = {
-                "method": method,
-                "path": path,
-                "status_code": status_code,
-                "duration_ms": round(duration_ms, 2),
-            }
+            log_detail_level = settings.LOG_REQUEST_DETAILS.lower()
             
-            # Add response headers (filtered)
-            response_headers = dict(response.headers)
-            filtered_response_headers = {
-                k: "***REDACTED***" if k.lower() in sensitive_headers else v
-                for k, v in response_headers.items()
-            }
-            response_log["response_headers"] = filtered_response_headers
+            if log_detail_level == "minimal":
+                response_log = {
+                    "method": method,
+                    "path": path,
+                    "status_code": status_code,
+                    "duration_ms": round(duration_ms, 2),
+                }
+            elif log_detail_level == "verbose":
+                response_log = {
+                    "method": method,
+                    "path": path,
+                    "url": full_url,
+                    "route": route_name,
+                    "status_code": status_code,
+                    "duration_ms": round(duration_ms, 2),
+                }
+                # Add response headers (filtered)
+                response_headers = dict(response.headers)
+                filtered_response_headers = {
+                    k: "***REDACTED***" if k.lower() in sensitive_headers else v
+                    for k, v in response_headers.items()
+                }
+                response_log["response_headers"] = filtered_response_headers
+            else:  # standard
+                response_log = {
+                    "method": method,
+                    "path": path,
+                    "url": full_url,
+                    "route": route_name,
+                    "status_code": status_code,
+                    "duration_ms": round(duration_ms, 2),
+                }
             
             # Log response body if enabled
             if self.log_response_body:
@@ -143,16 +225,30 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             # Calculate duration even on error
             duration_ms = (time.time() - start_time) * 1000
             
-            # Log error
-            logger.error(
-                "Request failed",
-                method=method,
-                path=path,
-                error_type=type(e).__name__,
-                error_message=str(e),
-                duration_ms=round(duration_ms, 2),
-                exc_info=True,
-            )
+            # Build error log based on detail level
+            log_detail_level = settings.LOG_REQUEST_DETAILS.lower()
+            
+            if log_detail_level == "minimal":
+                error_log = {
+                    "method": method,
+                    "path": path,
+                    "error_type": type(e).__name__,
+                    "error_message": str(e),
+                    "duration_ms": round(duration_ms, 2),
+                }
+            else:
+                error_log = {
+                    "method": method,
+                    "path": path,
+                    "url": full_url,
+                    "route": route_name,
+                    "client_ip": client_ip,
+                    "error_type": type(e).__name__,
+                    "error_message": str(e),
+                    "duration_ms": round(duration_ms, 2),
+                }
+            
+            logger.error("Request failed", **error_log, exc_info=True)
             
             # Re-raise exception
             raise

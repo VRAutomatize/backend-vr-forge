@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     LOG_LEVEL: str = "INFO"
     SECRET_KEY: str = "your-super-secret-key-change-in-production"
+    
+    # Logging Configuration
+    LOG_REQUEST_DETAILS: str = "standard"  # minimal, standard, verbose
+    LOG_INVALID_REQUESTS: bool = True
+    LOG_USER_AGENT: bool = True
+    LOG_REFERER: bool = True
 
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://vrforge:vrforge@localhost:5432/vrforge"
