@@ -22,18 +22,17 @@
 
 ### Base URL
 
-- **Desenvolvimento:** `https://forge-server.grupo-vr.com:8000`
-- **Produção:** `https://forge-server.grupo-vr.com:8000`
+- **Desenvolvimento/Produção:** `https://forge-server.grupo-vr.com`
 - **Local (opcional):** `http://localhost:8000`
 
-**Nota:** O mesmo host é usado para desenvolvimento e produção. Configure via variável de ambiente `NEXT_PUBLIC_API_URL` no frontend.
+**Nota:** O servidor está atrás de um proxy reverso, então não é necessário especificar a porta na URL pública. Configure via variável de ambiente `NEXT_PUBLIC_API_URL` no frontend.
 
 ### Versão da API
 
 - **Versão Atual:** `v1`
 - **Prefixo Base:** `/api/v1`
 - **Exceção:** Health check está em `/health` (sem prefixo)
-- **URL Completa Base:** `https://forge-server.grupo-vr.com:8000/api/v1`
+- **URL Completa Base:** `https://forge-server.grupo-vr.com/api/v1`
 
 ### Formato de Dados
 
@@ -41,9 +40,82 @@
 - **Accept:** `application/json`
 - **Encoding:** UTF-8
 
+### Resumo Rápido das Rotas
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `GET` | `/health` | Health check (sem prefixo `/api/v1`) |
+| `GET` | `/api/v1/domains` | Listar domínios |
+| `POST` | `/api/v1/domains` | Criar domínio |
+| `GET` | `/api/v1/domains/{id}` | Obter domínio |
+| `PUT` | `/api/v1/domains/{id}` | Atualizar domínio |
+| `POST` | `/api/v1/documents/upload` | Upload documento (multipart/form-data) |
+| `GET` | `/api/v1/documents` | Listar documentos |
+| `GET` | `/api/v1/documents/{id}` | Obter documento |
+| `POST` | `/api/v1/documents/{id}/process` | Processar documento |
+| `GET` | `/api/v1/segments` | Listar segmentos |
+| `GET` | `/api/v1/segments/{id}` | Obter segmento |
+| `POST` | `/api/v1/templates` | Criar template |
+| `GET` | `/api/v1/templates` | Listar templates |
+| `GET` | `/api/v1/templates/{id}` | Obter template |
+| `POST` | `/api/v1/datasets` | Criar dataset |
+| `GET` | `/api/v1/datasets` | Listar datasets |
+| `GET` | `/api/v1/datasets/{id}` | Obter dataset |
+| `POST` | `/api/v1/datasets/generate` | Gerar items sintéticos |
+| `GET` | `/api/v1/dataset/review/pending` | Listar items pendentes |
+| `POST` | `/api/v1/dataset/review/{id}/approve` | Aprovar item |
+| `POST` | `/api/v1/dataset/review/{id}/reject` | Rejeitar item |
+| `POST` | `/api/v1/dataset/review/{id}/edit` | Editar item |
+| `POST` | `/api/v1/datasets/{id}/export` | Exportar dataset |
+| `GET` | `/api/v1/datasets/{id}/exports` | Listar exports |
+| `GET` | `/api/v1/datasets/exports/{id}/download` | Download export |
+| `POST` | `/api/v1/models` | Registrar modelo |
+| `GET` | `/api/v1/models` | Listar modelos |
+| `GET` | `/api/v1/models/{id}` | Obter modelo |
+| `POST` | `/api/v1/training-jobs` | Criar job de treinamento |
+| `GET` | `/api/v1/training-jobs` | Listar jobs |
+| `GET` | `/api/v1/training-jobs/{id}` | Obter job |
+
 ### Request ID
 
 Todas as requisições recebem um `X-Request-ID` único no header da resposta. Use este ID para rastreamento e debug.
+
+### ⚠️ IMPORTANTE: Requisições HTTP Válidas
+
+**O backend detecta e loga requisições HTTP inválidas ou malformadas.** Para evitar erros, siga estas diretrizes:
+
+1. **Sempre use URLs completas:**
+   - ✅ Correto: `https://forge-server.grupo-vr.com/api/v1/domains`
+   - ❌ Errado: `/api/v1/domains` (sem protocolo/host)
+   - ❌ Errado: `api/v1/domains` (sem barra inicial)
+   - ❌ Errado: `https://forge-server.grupo-vr.com:8000/api/v1/domains` (não incluir porta na URL pública)
+
+2. **Use os métodos HTTP corretos:**
+   - `GET` para listar/obter recursos
+   - `POST` para criar recursos
+   - `PUT` para atualizar recursos
+
+3. **Headers obrigatórios:**
+   ```http
+   Content-Type: application/json
+   Accept: application/json
+   ```
+   Exceção: Uploads usam `multipart/form-data` (sem header Content-Type manual)
+
+4. **Body JSON válido:**
+   - Sempre envie JSON válido quando usar `Content-Type: application/json`
+   - Não envie strings vazias ou dados malformados
+   - Valide o JSON antes de enviar
+
+5. **Query parameters na URL:**
+   - ✅ Correto: `/api/v1/documents/upload?domain_id=xxx&use_case=yyy`
+   - ❌ Errado: Enviar query params no body
+
+**Se você ver "Invalid HTTP request received" nos logs:**
+- Verifique se a URL está completa e correta
+- Confirme que os headers estão corretos
+- Valide que o body JSON está bem formado (se aplicável)
+- Certifique-se de usar o método HTTP correto
 
 ---
 
@@ -1570,12 +1642,78 @@ GET /api/v1/datasets/exports/uuid-do-export/download
 
 ## Notas Importantes
 
+### Requisições HTTP Válidas
+
+**IMPORTANTE:** O backend detecta requisições HTTP inválidas ou malformadas. Certifique-se de seguir estas diretrizes:
+
+1. **Headers Obrigatórios:**
+   ```http
+   Content-Type: application/json
+   Accept: application/json
+   ```
+   Exceção: Upload de arquivos usa `multipart/form-data`
+
+2. **Métodos HTTP Corretos:**
+   - `GET` para listar/obter recursos
+   - `POST` para criar recursos
+   - `PUT` para atualizar recursos
+   - `DELETE` para deletar recursos (quando implementado)
+
+3. **URLs Completas:**
+   - Use URLs completas: `https://forge-server.grupo-vr.com/api/v1/domains`
+   - Não use URLs relativas sem o protocolo correto
+   - **Não inclua a porta** na URL pública (o proxy reverso gerencia isso)
+   - Apenas para desenvolvimento local use `http://localhost:8000`
+
+4. **Body JSON Válido:**
+   - Sempre envie JSON válido quando usar `Content-Type: application/json`
+   - Não envie strings vazias ou dados malformados
+   - Valide o JSON antes de enviar
+
+5. **Query Parameters:**
+   - Use query parameters para filtros: `?domain_id=xxx&use_case=yyy`
+   - Não inclua query parameters no body da requisição
+
+### Problemas Comuns e Soluções
+
+**Erro: "Invalid HTTP request received"**
+- **Causa:** Requisição HTTP malformada ou headers incorretos
+- **Solução:** 
+  - Verifique se está usando o método HTTP correto
+  - Certifique-se de que os headers estão corretos
+  - Valide que o body JSON está bem formado
+  - Verifique se a URL está completa e correta
+
+**Erro: 404 Not Found**
+- **Causa:** Rota não encontrada
+- **Solução:**
+  - Verifique se está usando o prefixo correto: `/api/v1/`
+  - Confirme que a rota existe na documentação
+  - Verifique se não há erros de digitação na URL
+
+**Erro: 422 Validation Error**
+- **Causa:** Dados inválidos no body da requisição
+- **Solução:**
+  - Verifique os campos obrigatórios
+  - Confirme os tipos de dados (strings, números, etc.)
+  - Valide UUIDs se necessário
+
 ### Upload de Arquivos
 
 - **Tipos Suportados:** PDF, DOCX, TXT
 - **Content-Type:** `multipart/form-data`
 - **Limite de Tamanho:** Configurável no servidor (padrão: sem limite)
 - **Parâmetros:** `domain_id` e `use_case` devem ser enviados como query parameters, não no body
+- **Exemplo Correto:**
+  ```javascript
+  const formData = new FormData();
+  formData.append('file', fileBlob);
+  
+  fetch('https://forge-server.grupo-vr.com/api/v1/documents/upload?domain_id=xxx&use_case=yyy', {
+    method: 'POST',
+    body: formData
+  });
+  ```
 
 ### Processamento Assíncrono
 
@@ -1603,6 +1741,104 @@ Atualmente, as listagens não têm paginação implementada. Todas as rotas `GET
 ### Rate Limiting
 
 Rate limiting não está implementado ainda. Será adicionado em versões futuras.
+
+## Guia Rápido de Integração Frontend
+
+### Configuração Base
+
+```javascript
+// Configuração do Axios ou Fetch
+const API_BASE_URL = 'https://forge-server.grupo-vr.com';
+
+// Headers padrão
+const defaultHeaders = {
+  'Content-Type': 'application/json',
+  'Accept': 'application/json'
+};
+```
+
+### Exemplos de Requisições Corretas
+
+**1. Listar Domínios:**
+```javascript
+fetch(`${API_BASE_URL}/api/v1/domains`, {
+  method: 'GET',
+  headers: defaultHeaders
+});
+```
+
+**2. Criar Domínio:**
+```javascript
+fetch(`${API_BASE_URL}/api/v1/domains`, {
+  method: 'POST',
+  headers: defaultHeaders,
+  body: JSON.stringify({
+    name: 'VR Chat',
+    slug: 'vr-chat',
+    description: 'IA conversacional'
+  })
+});
+```
+
+**3. Upload de Documento:**
+```javascript
+const formData = new FormData();
+formData.append('file', fileBlob);
+
+fetch(`${API_BASE_URL}/api/v1/documents/upload?domain_id=${domainId}&use_case=chat-training`, {
+  method: 'POST',
+  body: formData
+  // NÃO inclua Content-Type header - o browser define automaticamente para FormData
+});
+```
+
+**4. Listar Segmentos com Filtros:**
+```javascript
+const params = new URLSearchParams({
+  domain_id: 'xxx',
+  segment_type: 'paragraph'
+});
+
+fetch(`${API_BASE_URL}/api/v1/segments?${params}`, {
+  method: 'GET',
+  headers: defaultHeaders
+});
+```
+
+### Tratamento de Erros
+
+```javascript
+try {
+  const response = await fetch(url, options);
+  
+  if (!response.ok) {
+    const error = await response.json();
+    console.error('Erro:', error.error);
+    console.error('Detalhes:', error.details);
+    console.error('Request ID:', error.request_id);
+    // Use o request_id para rastreamento
+  }
+  
+  const data = await response.json();
+  return data;
+} catch (error) {
+  console.error('Erro de rede:', error);
+  throw error;
+}
+```
+
+### Checklist de Validação
+
+Antes de fazer uma requisição, verifique:
+
+- [ ] URL está completa e correta (inclui protocolo, host, porta e path)
+- [ ] Método HTTP está correto (GET, POST, PUT, DELETE)
+- [ ] Headers estão corretos (`Content-Type: application/json` para JSON)
+- [ ] Body JSON está bem formado (se aplicável)
+- [ ] Query parameters estão na URL, não no body
+- [ ] Para uploads, está usando `FormData` sem header `Content-Type`
+- [ ] UUIDs estão no formato correto
+- [ ] Campos obrigatórios estão presentes
 
 ---
 

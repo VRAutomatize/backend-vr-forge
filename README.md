@@ -99,16 +99,18 @@ docker-compose exec api alembic upgrade head
 ```
 
 A API estará disponível em:
-- **Produção/Desenvolvimento**: `https://forge-server.grupo-vr.com:8000`
+- **Produção/Desenvolvimento**: `https://forge-server.grupo-vr.com`
 - **Local**: `http://localhost:8000` (se rodando localmente)
+
+**Nota:** O servidor está atrás de um proxy reverso, então não é necessário especificar a porta na URL pública.
 
 ## 📚 Documentação da API
 
 Após iniciar o servidor, acesse:
 
-- **Swagger UI**: `https://forge-server.grupo-vr.com:8000/docs`
-- **ReDoc**: `https://forge-server.grupo-vr.com:8000/redoc`
-- **Health Check**: `https://forge-server.grupo-vr.com:8000/health`
+- **Swagger UI**: `https://forge-server.grupo-vr.com/docs`
+- **ReDoc**: `https://forge-server.grupo-vr.com/redoc`
+- **Health Check**: `https://forge-server.grupo-vr.com/health`
 
 ## 🔌 Endpoints Principais
 
